@@ -2,7 +2,9 @@ const router = require('express').Router();
 
 const knex = require('../knex-config');
 
-const authGuard = require('../authGaurd/authGuard')
+const authGuard = require('../authGaurd/authGuard');
+const { client } = require('../knex-config');
+const { response } = require('express');
 
 // Helper function for creating a client
 async function createClient(client_name,slogan,location){
@@ -56,6 +58,37 @@ router.get('/clients/:id',async(req,res) =>{
 
 
 // TODO : CREATE UPDATE ROUTE
+
+// Helper Function for updating clients
+async function updateClient(id,client_name,slogan){
+    return await knex('clients')
+        .update({client_name: client_name, slogan: slogan})
+        .where('id',id)
+}
+
+router.post('/clients/update/:id', authGuard, async(req,res) => {
+    let id = req.params.id;
+    let client_name = req.body.client_name;
+    let slogan = req.body.slogan;
+
+    await updateClient(id,client_name,slogan)
+
+    res.json({status:'success'})
+})
+
 // TODO : CREATE DELETE ROUTE
+
+async function deleteClient(id){
+    return await knex('clients')
+        .where({id:id})
+        .del()
+}
+
+router.delete('/clients/delete/:id',authGuard,async(req,res) => {
+    let id = req.params.id;
+    await deleteClient(id);
+
+    res.json({status:'success Deleted'})
+})
 
 module.exports = router
